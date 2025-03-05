@@ -4,11 +4,12 @@ const cors = require("cors");
 
 const app = express();
 
-// อนุญาตเฉพาะ origin จาก https://co-working.smobu.cloud
+// Enable CORS for requests coming from https://co-working.smobu.cloud
+// For local testing, consider setting origin to "*" temporarily
 app.use(cors({
-  origin: "https://co-working.smobu.cloud",  // Allow requests from this origin
-  methods: ["POST"],  // Allow only POST requests
-  allowedHeaders: ["Content-Type"]  // Allow only Content-Type header
+  origin: "https://co-working.smobu.cloud", // Change to "*" for local testing if needed
+  methods: ["POST"],
+  allowedHeaders: ["Content-Type"]
 }));
 
 app.use(express.json());
@@ -17,26 +18,27 @@ app.post("/bu_login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // Call the BU API with username and password
+    // Call the BU API with the provided username and password
     const response = await axios.get(
       `https://assessment.bu.ac.th/App_AJAX/Login/CheckLogin.aspx?Username=${username}&Password=${password}`
     );
-    
-    console.log("Response from BU API:", response.data); // Log the response for debugging
 
-    // Check if login was successful
-    if (response.data.facultyOK) {
-      // Send success response if facultyOK is true
+    // Log the raw response from the BU API for debugging
+    console.log("Response from BU API:", response.data);
+
+    // Adjust the check based on the actual response from the BU API.
+    // If the response data is a string that contains "facultyOK", use includes().
+    if (typeof response.data === "string" && response.data.includes("facultyOK")) {
+      res.json({ success: true });
+    } else if (response.data.facultyOK) {
+      // If response.data is an object with facultyOK property
       res.json({ success: true });
     } else {
-      // Send failure response if facultyOK is false
       res.status(401).json({ success: false, message: "Unauthorized" });
     }
   } catch (error) {
-    // Log the error for debugging
+    // Log the error details for debugging
     console.error("Error connecting to BU API:", error);
-    
-    // Send server error response
     res.status(500).json({ success: false, message: "Error connecting to API" });
   }
 });
