@@ -13,7 +13,7 @@ app.use(cors({
 
 app.use(express.json());
 
-app.post("/login", async (req, res) => {
+app.post("/bu_login", async (req, res) => {
   const { username, password } = req.body;
   try {
     const response = await axios.get(
