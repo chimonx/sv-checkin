@@ -26,16 +26,20 @@ app.post("/bu_login", async (req, res) => {
     // Log the raw response from the BU API for debugging
     console.log("Response from BU API:", response.data);
 
-    // Adjust the check based on the actual response from the BU API.
-    // If the response data is a string that contains "facultyOK", use includes().
-    if (typeof response.data === "string" && response.data.includes("facultyOK")) {
-      res.json({ success: true });
-    } else if (response.data.facultyOK) {
-      // If response.data is an object with facultyOK property
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ success: false, message: "Unauthorized" });
+    const rawData = response.data;
+
+    // Check if the response is a string that exactly equals "facultyOK" (after trimming any whitespace)
+    if (typeof rawData === "string" && rawData.trim() === "facultyOK") {
+      return res.json({ success: true });
     }
+
+    // Alternatively, if the response is an object with a facultyOK property
+    if (rawData && rawData.facultyOK) {
+      return res.json({ success: true });
+    }
+
+    // If neither condition is met, send unauthorized
+    res.status(401).json({ success: false, message: "Unauthorized" });
   } catch (error) {
     // Log the error details for debugging
     console.error("Error connecting to BU API:", error);
